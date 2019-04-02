@@ -1,0 +1,15 @@
+; Tool Table
+; Format-- Tool No. ID Length  Diam.  Frute len. Neck Diam.  Reach Len. Shank Diam. (Sub Format)
+; ID Cylinder 1, Ball 2, Bull 3, Corn 4, Drill 10
+
+1       1       30     6.0	2	5.8	22	8.0		
+2       2       30     2.0	3	1.8	20	4.0
+3       1       30     4.0	5	3.9	20	6.0
+4       2       30     1.0	3	0.99	20	4.0
+5       2       30     4.0	5	3.9	20	6.0
+6	1	30     8.0	3	4.0	20	8.0	
+7	1	30    10.0     18      10.0	25     10.0	
+8       3       30     4.0     20	5.8	25	6.0	0.5		; 4.0(mm) Bull Cutter with bull radius 0.5(mm)
+9       4       30     4.0     20	5.8	25	6.0	1.0	3.0	; 4.0(mm) Cone Cutter with tip radius 1.0(mm) base radius 3.0(mm)	
+10     10       30     4.0     20	5.8	25	6.0	118.0		; 4.0(mm) Drill with tip angle 110 degree			
+32     32       50     0.0

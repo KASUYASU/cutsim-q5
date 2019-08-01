@@ -39,7 +39,7 @@ void MarchingCubes::updateGL(Octnode* node) {
 
     // current node done, now recurse into tree.
     if ( node->childcount == 8 ) {
-        for (unsigned int m=0;m<8;m++) {
+        for (unsigned int m = 0; m < 8; m++) {
         	if (!node->child[m]->valid())
         		updateGL( node->child[m] );
         }
@@ -55,7 +55,7 @@ void MarchingCubes::mc_node( Octnode* node) {
  if (edgeTableIndex == 0 || edgeTableIndex == 0xff) return;
     unsigned int edges = edgeTable[edgeTableIndex];
     std::vector< GLVertex > vertices = interpolated_vertices(node, edges);
-    for (unsigned int i=0; triTable[edgeTableIndex][i] != -1 ; i+=3 ) {
+    for (unsigned int i = 0; triTable[edgeTableIndex][i] != -1; i+=3) {
         std::vector< unsigned int > triangle;
         GLVertex p1 = vertices[ triTable[edgeTableIndex][i    ] ];
         GLVertex p2 = vertices[ triTable[edgeTableIndex][i+1  ] ];

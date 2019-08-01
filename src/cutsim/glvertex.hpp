@@ -131,9 +131,10 @@ struct GLVertex {
         return sqrt( x*x + y*y + z*z );
     }
     /// set length to 1
-    void normalize() {
+    GLVertex normalize() {
         if (this->norm() != 0.0)
             *this *= (1/this->norm());
+        return GLVertex(*this);
     }
     /// multiplication by scalar
     GLVertex& operator*=(const double &a) {
@@ -154,7 +155,7 @@ struct GLVertex {
         return *this;
     }
     /// vector addition
-    const GLVertex operator+( const GLVertex &p) const {
+    GLVertex operator+( const GLVertex &p) const {
         return GLVertex(*this) += p;
     }
     /// vector subtraction
@@ -165,7 +166,7 @@ struct GLVertex {
         return *this;
     }
     /// vector subtraction
-    const GLVertex operator-( const GLVertex &p) const {
+    GLVertex operator-( const GLVertex &p) const {
         return GLVertex(*this) -= p;
     }
     /// cross product

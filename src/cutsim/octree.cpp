@@ -42,7 +42,7 @@ Octree::Octree(double scale, unsigned int  depth, GLVertex* centerp, GLData* gl)
     // parent(=root) scale, GLdata, center
     root = new Octnode( centerp, root_scale, g );
 
-    for ( int n=0;n<8;++n) {
+    for (int n = 0; n < 8; ++n) {
         root->child[n] = NULL;
     }
     debug = false;
@@ -74,7 +74,7 @@ double Octree::leaf_scale() const {
 
 /// subdivide the Octree n times
 void Octree::init(const unsigned int n) {
-    for (unsigned int m=0;m<n;++m) {
+    for (unsigned int m = 0; m < n; ++m) {
         std::vector<Octnode*> nodelist;
         get_leaf_nodes(root, nodelist);
         BOOST_FOREACH( Octnode* node, nodelist) {
@@ -93,7 +93,7 @@ void Octree::get_invalid_leaf_nodes(Octnode* current, std::vector<Octnode*>& nod
             nodelist.push_back( current );
         }
     } else {//surface()surface()
-        for ( int n=0;n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
             if ( current->hasChild(n) ) {
                 if ( !current->valid() ) {
                     get_leaf_nodes( current->child[n], nodelist );
@@ -108,7 +108,7 @@ void Octree::get_leaf_nodes(Octnode* current, std::vector<Octnode*>& nodelist) c
     if ( current->isLeaf() ) {
         nodelist.push_back( current );
     } else {
-        for ( int n=0;n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
             if ( current->child[n] != 0 )
                 get_leaf_nodes( current->child[n], nodelist );
         }
@@ -119,7 +119,7 @@ void Octree::get_leaf_nodes(Octnode* current, std::vector<Octnode*>& nodelist) c
 void Octree::get_all_nodes(Octnode* current, std::vector<Octnode*>& nodelist) const {
     if ( current ) {
         nodelist.push_back( current );
-        for ( int n=0;n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
             if ( current->child[n] != 0 )
                 get_all_nodes( current->child[n], nodelist );
         }
@@ -129,48 +129,45 @@ void Octree::get_all_nodes(Octnode* current, std::vector<Octnode*>& nodelist) co
 // sum (union) of tree and Volume
 //void Octree::sum(Octnode* current, const Volume* vol) {
 void Octree::sum(Octnode* current, Volume* vol) {
-//    if ( current->is_inside() || !vol->bb.overlaps( current->bb ) ) // if no overlap, or already INSIDE, then quit.
-//        return; // abort if no overlap.
-if ( current->is_inside() || !vol->bb.overlaps( current->bb ) ) { // if no overlap, or already INSIDE, then quit.
-vol->accumlateProgress(processed[current->depth]);
-return; // abort if no overlap.
-}
+    if ( current->is_inside() || !vol->bb.overlaps( current->bb ) ) { // if no overlap, or already INSIDE, then quit.
+        vol->accumlateProgress(processed[current->depth]);
+        return; // abort if no overlap.
+    }
 
-//if ((current->depth == (this->max_depth-1)) && current->is_undecided()) return;
-if ((current->depth == (this->max_depth-1)) && current->is_undecided() && !current->color.compareColor(vol->color)) { // return;
-	vol->accumlateProgress(1);
-	return;
-}
+    if ((current->depth == (this->max_depth-1)) && current->is_undecided() && !current->color.compareColor(vol->color)) { // return;
+        vol->accumlateProgress(1);
+        return;
+    }
 
     current->sum(vol);
 
-if (vol->type == cutsim::STL_VOLUME) {
-    if (current->depth == (this->max_depth-1)) {
-		current->set_state();
-		vol->accumlateProgress(1);
-		return;
-	} else if (current->check_complete_inside_outside()) { //return;
-		vol->accumlateProgress(processed[current->depth]);
-		return;
-	}
-} else
-	 current->set_state();
+    if (vol->type == cutsim::STL_VOLUME) {
+        if (current->depth == (this->max_depth-1)) {
+            current->set_state();
+            vol->accumlateProgress(1);
+            return;
+        } else if (current->check_complete_inside_outside()) { //return;
+            vol->accumlateProgress(processed[current->depth]);
+            return;
+        }
+    } else
+        current->set_state();
 
     if ( (current->childcount == 8) ) { // recurse into existing tree
 #ifdef MULTI_THREAD_SUM
             QFuture<void> future[8];
             bool dispatch[8];
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
             	if ( !current->child[m]->is_inside()  ) { // nodes that are already INSIDE cannot change in a sum-operation
             		future[m] = QtConcurrent::run(this, &Octree::sum, current->child[m], vol);
             		dispatch[m] = true;
             	} else
             		dispatch[m] = false;
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
             	if (dispatch[m] == true)
             		future[m].waitForFinished();
 #else
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
             if ( !current->child[m]->is_inside()  ) // nodes that are already INSIDE cannot change in a sum-operation
                 sum( current->child[m], vol); // call sum on children
         }
@@ -181,12 +178,12 @@ if (vol->type == cutsim::STL_VOLUME) {
             current->subdivide(); // smash into 8 sub-pieces
 #ifdef MULTI_THREAD_SUM
             QFuture<void> future[8];
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
             	future[m] = QtConcurrent::run(this, &Octree::sum, current->child[m], vol);
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
             	future[m].waitForFinished();
 #else
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
                 sum( current->child[m], vol); // call sum on children
 #endif
         }
@@ -200,9 +197,9 @@ if (vol->type == cutsim::STL_VOLUME) {
         current->delete_children();
     }
 
-vol->accumlateProgress(1 << ((this->max_depth-1) - current->depth));
-if (current->depth < (this->max_depth-3))
-vol->sendProgress();
+    vol->accumlateProgress(1 << ((this->max_depth-1) - current->depth));
+    if (current->depth < (this->max_depth-3))
+        vol->sendProgress();
 
     return;
 }
@@ -217,7 +214,7 @@ void Octree::diff(Octnode* current, const Volume* vol) {
 	current->set_state();
 
     if ( ((current->childcount) == 8) /*&& current->is_undecided()*/ ) { // recurse into existing tree
-         for(int m=0;m<8;++m) {
+         for(int m = 0; m < 8; ++m) {
             if ( !current->child[m]->is_outside()  ) // nodes that are OUTSIDE don't change
                 diff( current->child[m], vol); // call diff on children
         }
@@ -225,7 +222,7 @@ void Octree::diff(Octnode* current, const Volume* vol) {
         if ( (current->depth < (this->max_depth-1)) ) {
             if (!current->is_undecided()) { current->force_setUndecided(); }
             current->subdivide(); // smash into 8 sub-pieces
-            for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
                 diff( current->child[m], vol); // call diff on children
             }
         }
@@ -247,17 +244,15 @@ void Octree::intersect(Octnode* current, const Volume* vol) {
 	current->set_state();
 
     if ( ((current->childcount) == 8) /*&& current->is_undecided()*/ ) { // recurse into existing tree
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
             //if ( !current->child[m]->is_outside()  ) // nodes that are OUTSIDE don't change
                 intersect( current->child[m], vol); // call intersect on children
         }
-//    } else if (  current->is_undecided() ) { // no children, subdivide if undecided 
-//    	if (current->childcount != 0) { std::cout << " current->childcount != 0 now:" << current->childcount; return; }
     } else { // no children, subdivide it
     	if (!current->is_undecided()) { current->force_setUndecided(); }
         if ( (current->depth < (this->max_depth-1)) ) {
             current->subdivide(); // smash into 8 sub-pieces
-            for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
                 intersect( current->child[m], vol); // call intersect on children
             }
         }
@@ -294,14 +289,14 @@ CuttingStatus Octree::diff_c(Octnode* current, const Volume* vol) {
 #ifdef MULTI_THREAD_DIFF
     	QFuture<CuttingStatus> future[8];
         bool dispatch[8];
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
             if ( !current->child[m]->is_outside() ) {
             	future[m] = QtConcurrent::run(this, &Octree::diff_c, current->child[m], vol);
             	dispatch[m] = true;
             } else
             	dispatch[m] = false;
         }
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
         	if (dispatch[m] == true) {
             	future[m].waitForFinished();
             	childstatus = future[m].result();
@@ -310,7 +305,7 @@ CuttingStatus Octree::diff_c(Octnode* current, const Volume* vol) {
             }
         }
 #else
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
         	if ( !current->child[m]->is_outside() ) { // nodes that are OUTSIDE don't change
         		childstatus = diff_c( current->child[m], vol); // call diff_c on children
         		status.cutcount += childstatus.cutcount;
@@ -324,16 +319,16 @@ CuttingStatus Octree::diff_c(Octnode* current, const Volume* vol) {
     		current->subdivide(); // smash into 8 sub-pieces
 #ifdef MULTI_THREAD_DIFF
             QFuture<CuttingStatus> future[8];
-            for(int m=0;m<8;++m)
+            for(int m = 0; m < 8; ++m)
             	future[m] = QtConcurrent::run(this, &Octree::diff_c, current->child[m], vol);
-            for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
             	future[m].waitForFinished();
             	childstatus = future[m].result();
 				status.cutcount += childstatus.cutcount;
 				status.collision |= childstatus.collision;
             }
 #else
-    		for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
     			childstatus = diff_c( current->child[m], vol); // call diff_c on children
     			status.cutcount += childstatus.cutcount;
     			status.collision |= childstatus.collision;
@@ -364,41 +359,39 @@ bool Octree::check_node(Octnode* current, const Volume* vol)
 		if (state == Octnode::UNDECIDED) {
 			bool outside = true;
 			bool inside  = true;
-			for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
 				if (current->child[m]->is_inside()) outside = false;
 			    if (current->child[m]->is_outside()) inside = false;
 			}
 			state = inside ? Octnode::INSIDE : outside ? Octnode::OUTSIDE : Octnode::UNDECIDED;
 		}
 
-        for(int m=0;m<8;++m) {
+        for(int m = 0; m < 8; ++m) {
         	bool check = check_node(current->child[m], vol); // call check_node on children
         	if (check == false) {
            		if (state == Octnode::OUTSIDE) {
-        			std::cout << "Force Outside x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
-        			current->child[m]->color.set(1,1,1);
-//        			current->child[m]->state = Octnode::OUTSIDE;
+                    std::cout << "Force Outside x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
+                    current->child[m]->color.set(1,1,1);
+                    current->child[m]->state = Octnode::OUTSIDE;
         		} else if (state == Octnode::INSIDE) {
-        			std::cout << "Force Inside  x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
-        			current->child[m]->color.set(1,0,0);
-//        			current->child[m]->state = Octnode::INSIDE;
-        		} else
+                    std::cout << "Force Inside  x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
+                    current->child[m]->color.set(1,0,0);
+                    current->child[m]->state = Octnode::INSIDE;
+                } else
         			std::cout << "Can't Decide  x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
         	}
     	}
     }
 
     // now all children have their status set, prune.
-//    if ( (current->childcount == 8) && ( current->all_child_state(Octnode::INSIDE) || current->all_child_state(Octnode::OUTSIDE) ) ) {
     if ( (current->childcount == 8) && (current->check_include_undecided() == false) ) {
     	if (current->all_child_state(Octnode::INSIDE))
     		current->state = Octnode::INSIDE;
-//    	else
     	else if (current->all_child_state(Octnode::OUTSIDE))
     		current->state = Octnode::OUTSIDE;
     	else {
     		int inside = 0, outside = 0;
-			for(int m=0;m<8;++m) {
+            for(int m = 0; m < 8; ++m) {
 				if (current->child[m]->is_inside())  outside++;
 			    if (current->child[m]->is_outside()) inside--;
 			}
@@ -436,7 +429,7 @@ std::string Octree::str() const {
         		 totalVertexSize += sizeof(GLVertex);
     }
     o << "  " << nodelist.size() << " leaf-nodes:\n";
-    int m=0;
+    int m = 0;
     BOOST_FOREACH( int count, nodelevel) {
         o << "depth="<<m <<"  " << count << " nodes, " << invalidsAtLevel[m] << " invalid, surface=" << surfaceAtLevel[m] << " \n";
         ++m;
@@ -457,7 +450,7 @@ std::string Octree::str() const {
 void Octree::treeTransfer(Octnode* current, GLVertex parallel, int flip_axis, bool ignore_parts) {
 	current->nodeTransfer(parallel, flip_axis, ignore_parts);
 	if (((current->childcount) == 8))
-		for(int m=0;m<8;++m)
+        for(int m = 0; m < 8; ++m)
 			treeTransfer(current->child[m], parallel, flip_axis, ignore_parts);
 }
 
@@ -465,7 +458,7 @@ void Octree::setInvalid(Octnode* current) {
 	if (current->is_undecided() && current->isLeaf() && current->valid())
 		current->setInvalid();
 	if (((current->childcount) == 8))
-		for(int m=0;m<8;++m)
+        for(int m = 0; m < 8; ++m)
 			setInvalid(current->child[m]);
 }
 
@@ -490,7 +483,7 @@ void Octree::clearTree(double root_scale, unsigned int max_depth, GLVertex* cent
                          GLVertex( 1,-1, 1)    // 7
                         };
 
-    for ( int n=0;n<8;++n) {
+    for ( int n = 0; n < 8; ++n) {
     	root->vertex[n] = new GLVertex(*root->center + direction[n] * root->scale) ;
     	root->f[n] = -1;
     }
@@ -508,7 +501,7 @@ void Octree::clearTree(double root_scale, unsigned int max_depth, GLVertex* cent
 
 void Octree::clearNode(Octnode* current) {
 	if (((current->childcount) == 8))
-		for(int m=0;m<8;++m)
+        for(int m = 0; m < 8; ++m)
 			clearNode(current->child[m]);
 	current->force_delete_children();
 }

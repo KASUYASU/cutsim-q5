@@ -30,7 +30,8 @@ int Stl::readStlFile(QString file)
 			line_count++;
 			if (line.size() == 0) continue;
 			lex_analyzer::LexAnalyzer lex(line.toStdString());
-			if (lex.wordMatch("solid", 0) && lex.wordMatch("ascii", 1))
+//            if (lex.wordMatch("solid", 0) && lex.wordMatch("ascii", 1))
+            if (lex.wordMatch("solid", 0))
 				ascii_stl_start = true;
 			if (lex.wordMatch("endsolid", 0))
 				ascii_stl_start = false;

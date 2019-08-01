@@ -95,7 +95,7 @@ Octnode::Octnode(Octnode* nodeparent, unsigned int index, double nodescale, unsi
 		assert( parent == NULL );
     }
 
-    for ( int n=0;n<8;++n) {
+    for ( int n = 0; n < 8; ++n) {
         child[n] = NULL;
         vertex[n] = new GLVertex(*center + direction[n] * scale) ;
             assert( parent->state == UNDECIDED );
@@ -144,7 +144,7 @@ Octnode::Octnode(GLVertex* root_center, double nodescale, GLData* gl) {
     state = UNDECIDED;
     prev_state = OUTSIDE;
 
-    for ( int n=0;n<8;++n) {
+    for ( int n = 0; n < 8; ++n) {
         child[n] = NULL;
         vertex[n] = new GLVertex(*center + direction[n] * scale) ;
         f[n] = -1;
@@ -168,13 +168,12 @@ Octnode::Octnode(GLVertex* root_center, double nodescale, GLData* gl) {
 
 // call delete on children, vertices, and center
 Octnode::~Octnode() {
-//    if (childcount == 8 ) {
     if (childcount != 0 ) {
-        for(int n=0;n<8;++n) {
-        	if (child[n]!=0) {
+        for(int n = 0; n < 8; ++n) {
+            if (child[n] != 0) {
         		if (child[n]->childcount != 0) {
 //std::cout << "\nchild[n]->childcount : " << child[n]->childcount << "\n";
-        			for (int m=0;m<8;++m)
+                    for (int m = 0; m < 8; ++m)
         				if (child[n]->child[m] != 0) {
         					child[n]->child[m]->clearVertexSet();
         					delete child[n]->child[m];
@@ -212,7 +211,7 @@ void Octnode::subdivide() {
             std::cout << " subdivide() error: state==" << state << "\n";
 
         assert( state == UNDECIDED );
-        for( int n=0;n<8;++n ) {
+        for( int n = 0; n < 8; ++n ) {
 #ifdef POOL_NODE
         	Octnode* newnode = createOctnode( this, n , scale*0.5 , depth+1 , g); // parent,  idx, scale,   depth, GLdata
 #else
@@ -326,8 +325,8 @@ bool Octnode::check_complete_inside_outside() {
     bool inside = true;
     bool outside = true;
     double limit = scale*4.0;
-    for ( int n=0;n<8;n++) {
-        if ( f[n] <= limit)   // if one vertex is not far inside
+    for ( int n = 0; n < 8; n++) {
+        if (f[n] <= limit)   // if one vertex is not far inside
             inside = false; // then it may not be an inside-node
         if (-limit <= f[n])  // if one vertex is not far outside
             outside = false; // then it may not be an outside-node
@@ -362,7 +361,7 @@ bool Octnode::check_include_undecided() {
 int Octnode::check_node_state() {
     bool outside = true;
     bool inside = true;
-    for ( int n=0;n<8;n++) {
+    for ( int n = 0; n < 8; n++) {
         if ( f[n] >= 0.0 ) {// if one vertex is inside
             outside = false; // then it's not an outside-node
         } else { // if one vertex is outside
@@ -380,7 +379,7 @@ bool Octnode::set_state() {
     NodeState old_state = state;
     bool outside = true;
     bool inside = true;
-    for ( int n=0;n<8;n++) {
+    for ( int n = 0; n < 8; n++) {
         if ( f[n] >= 0.0 ) {// if one vertex is inside
             outside = false; // then it's not an outside-node
         } else { // if one vertex is outside
@@ -449,7 +448,7 @@ bool Octnode::all_child_state(NodeState s) const {
 void Octnode::delete_children() {
     if (childcount == 8) {
         NodeState s0 = child[0]->state;
-        for (int n=0;n<8;n++) {
+        for (int n = 0; n < 8; n++) {
 //            if ( s0 != child[n]->state ) {
 //                std::cout << " delete_children() error: ";
 //                std::cout << "\n";
@@ -472,7 +471,7 @@ void Octnode::delete_children() {
 
 void Octnode::force_delete_children() {
     if (childcount == 8) {
-        for (int n=0;n<8;n++) {
+        for (int n = 0; n < 8; n++) {
             child[n]->clearVertexSet();
 #ifdef POOL_NODE
             deleteOctnode(child[n]);
@@ -566,7 +565,7 @@ std::ostream& operator<<(std::ostream &stream, const Octnode &n) {
 
 std::string Octnode::printF() {
     std::ostringstream o;
-    for (int n=0;n<8;n++) {
+    for (int n = 0; n < 8; n++) {
         o << "f[" << n <<"] = " << f[n] << "\n";
     }
     return o.str();
@@ -574,7 +573,7 @@ std::string Octnode::printF() {
 
 std::string Octnode::spaces() const {
     std::ostringstream stream;
-    for (unsigned int m=0;m<this->depth;m++)
+    for (unsigned int m = 0; m < this->depth; m++)
         stream << " ";
     return stream.str();
 }
@@ -604,14 +603,14 @@ void Octnode::nodeTransfer(GLVertex parallel, int flip_axis, bool ignore_parts) 
 		return;
 
 	*center += parallel;
-	for (int n=0; n<8;++n)
+    for (int n = 0; n < 8; ++n)
 		*vertex[n] += parallel;
 
 	switch (flip_axis) {
 	case X_AXIS: // flip axis X
 		center->y = -(center->y);
 		center->z = -(center->z);
-		for (int n=0; n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
 			vertex[n]->y = -(vertex[n]->y);
 			vertex[n]->z = -(vertex[n]->z);
 		}
@@ -619,7 +618,7 @@ void Octnode::nodeTransfer(GLVertex parallel, int flip_axis, bool ignore_parts) 
 	case Y_AXIS: // flip axis Y
 		center->z = -(center->z);
 		center->x = -(center->x);
-		for (int n=0; n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
 			vertex[n]->z = -(vertex[n]->z);
 			vertex[n]->x = -(vertex[n]->x);
 		}
@@ -627,7 +626,7 @@ void Octnode::nodeTransfer(GLVertex parallel, int flip_axis, bool ignore_parts) 
 	case Z_AXIS: // flip axis Z
 		center->x = -(center->x);
 		center->y = -(center->y);
-		for (int n=0; n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
 			vertex[n]->x = -(vertex[n]->x);
 			vertex[n]->y = -(vertex[n]->y);
 		}
@@ -679,7 +678,7 @@ Octnode* Octnode::createOctnode(Octnode* nodeparent, unsigned int index, double 
 	    	assert( node->parent == NULL );
 	    }
 
-	    for ( int n=0;n<8;++n) {
+        for (int n = 0; n < 8; ++n) {
 			node->child[n] = NULL;
 			*node->vertex[n] = *(node->center) + node->direction[n] * node->scale;
 	        if (node->parent) {

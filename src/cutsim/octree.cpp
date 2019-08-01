@@ -376,7 +376,7 @@ bool Octree::check_node(Octnode* current, const Volume* vol)
         		} else if (state == Octnode::INSIDE) {
                     std::cout << "Force Inside  x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
                     current->child[m]->color.set(1,0,0);
-                    current->child[m]->state = Octnode::INSIDE;
+//                    current->child[m]->state = Octnode::INSIDE;
                 } else
         			std::cout << "Can't Decide  x:" << current->child[m]->center->x << " y:" << current->child[m]->center->y << " z:" << current->child[m]->center->z << "\n";
         	}

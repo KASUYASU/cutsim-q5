@@ -826,12 +826,12 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
 
 	if (correction == true) {
         if (((second.side != UNDECIDED) && (second.side != selected.side)) || ((third.side != UNDECIDED) && (third.side != selected.side)) || !more.empty()) {
-            if ((selected.q - second.q).norm() < CALC_TOLERANCE*10.0) {
+            if ((selected.q - second.q).norm() < CALC_TOLERANCE*100.0) {
 //				std::cout << "correction ";
                 GLVertex outer_vector = ((selected.q - Facet::facetCenter(facets[selected.index])).normalize() + (selected.q - Facet::facetCenter(facets[second.index])).normalize()).normalize();
                 GLVertex normal_avg_vector = facets[selected.index]->normal + facets[second.index]->normal;
                 normal_vec_calc_count++;
-                if ((third.side != UNDECIDED) && ((selected.q - third.q).norm() < CALC_TOLERANCE*10.0)) {
+                if ((third.side != UNDECIDED) && ((selected.q - third.q).norm() < CALC_TOLERANCE*100.0)) {
                     outer_vector += (selected.q - Facet::facetCenter(facets[third.index])).normalize();
                     outer_vector.normalize();
                     normal_avg_vector += facets[third.index]->normal;
@@ -841,7 +841,7 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
                     } else {
 //                        std::cout << "more triple...(" << more.size() << " facets)\n";
                         for (int i = 0; i < (int)more.size(); i++) {
-                            if ((selected.q - more[i].q).norm() < CALC_TOLERANCE*10.0) {
+                            if ((selected.q - more[i].q).norm() < CALC_TOLERANCE*100.0) {
                                 outer_vector += (selected.q - Facet::facetCenter(facets[more[i].index])).normalize();
                                 outer_vector.normalize();
                                 normal_avg_vector += facets[more[i].index]->normal;

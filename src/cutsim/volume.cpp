@@ -186,7 +186,7 @@ void RectVolume2::calcBB() {
 					  center + GLVertex(-width * 0.5, -length * 0.5,  hight ),
 					  center + GLVertex( width * 0.5, -length * 0.5,  hight ) };
 
-	for (int n=0; n<8; n++) {
+    for (int n = 0; n < 8; n++) {
 		GLVertex rotated_p = p[n] - rotationCenter;
 		p[n] = rotated_p.rotateABC(angle.x, angle.y, angle.z) + rotationCenter;
 	}
@@ -309,7 +309,7 @@ void CylinderVolume::calcBB() {
 					  center + GLVertex(-radius, -radius, length ),
 					  center + GLVertex( radius, -radius, length ) };
 
-	for (int n=0; n<8; n++) {
+    for (int n = 0; n < 8; n++) {
 		GLVertex rotated_p = p[n] - rotationCenter;
 		p[n] = rotated_p.rotateABC(angle.x, angle.y, angle.z) + rotationCenter;
 	}
@@ -370,30 +370,24 @@ StlVolume::StlVolume() {
 }
 
 void StlVolume::calcBB() {
-//    GLVertex maxpt;
-//    GLVertex minpt;
-    for (int i=0; i < (int)facets.size(); i++) {
+    for (int i = 0; i < (int)facets.size(); i++) {
     	facets[i]->v1 += center; facets[i]->v2 += center; facets[i]->v3 += center;
-//    	facets[i]->normal = facets[i]->normal.rotateAC(angle.x, angle.z);
     	facets[i]->normal = facets[i]->normal.rotateABC(angle.x, angle.y, angle.z);
 std::cout << "normal x: " << facets[i]->normal.x << " y: " << facets[i]->normal.y << " z: " << facets[i]->normal.z << "\n";
     	GLVertex v1p = facets[i]->v1 - rotationCenter;
-//    	facets[i]->v1 = v1p.rotateAC(angle.x, angle.z) + rotationCenter;
     	facets[i]->v1 = v1p.rotateABC(angle.x, angle.y, angle.z) + rotationCenter;
 std::cout << "vertex v1: " << facets[i]->v1.x << " y: " << facets[i]->v1.y << " z: " << facets[i]->v1.z << "\n";
     	GLVertex v2p = facets[i]->v2 - rotationCenter;
-//    	facets[i]->v2 = v2p.rotateAC(angle.x, angle.z) + rotationCenter;
     	facets[i]->v2 = v2p.rotateABC(angle.x, angle.y, angle.z) + rotationCenter;
 std::cout << "vertex v2: " << facets[i]->v2.x << " y: " << facets[i]->v2.y << " z: " << facets[i]->v2.z << "\n";
     	GLVertex v3p = facets[i]->v3 - rotationCenter;
-//    	facets[i]->v3 = v3p.rotateAC(angle.x, angle.z) + rotationCenter;
     	facets[i]->v3 = v3p.rotateABC(angle.x, angle.y, angle.z) + rotationCenter;
 std::cout << "vertex v3: " << facets[i]->v3.x << " y: " << facets[i]->v3.y << " z: " << facets[i]->v3.z << "\n";
 
-GLVertex test = (facets[i]->v2 - facets[i]->v1).cross(facets[i]->v3 - facets[i]->v1);
-test.normalize();
-//assert ((facets[i]->normal - test).norm() < CALC_TOLERANCE);
-facets[i]->normal = test;
+        GLVertex normal = (facets[i]->v2 - facets[i]->v1).cross(facets[i]->v3 - facets[i]->v1);
+        normal.normalize();
+//assert ((facets[i]->normal - normal).norm() < CALC_TOLERANCE);
+        facets[i]->normal = normal;
     }
     if (facets.size()) {
         maxpt.x = fmax(fmax(facets[0]->v1.x, facets[0]->v2.x),facets[0]->v3.x);
@@ -403,7 +397,7 @@ facets[i]->normal = test;
         minpt.y = fmin(fmin(facets[0]->v1.y, facets[0]->v2.y),facets[0]->v3.y);
         minpt.z = fmin(fmin(facets[0]->v1.z, facets[0]->v2.z),facets[0]->v3.z);
     }
-    for (int i=0; i < (int)facets.size(); i++) {
+    for (int i = 0; i < (int)facets.size(); i++) {
         maxpt.x = fmax(fmax(fmax(facets[i]->v1.x, facets[i]->v2.x),facets[i]->v3.x), maxpt.x);
         maxpt.y = fmax(fmax(fmax(facets[i]->v1.y, facets[i]->v2.y),facets[i]->v3.y), maxpt.y);
         maxpt.z = fmax(fmax(fmax(facets[i]->v1.z, facets[i]->v2.z),facets[i]->v3.z), maxpt.z);
@@ -418,8 +412,6 @@ facets[i]->normal = test;
         V13invV13dotV13.push_back((facets[i]->v1 - facets[i]->v3) * (1.0/(facets[i]->v1 - facets[i]->v3).dot(facets[i]->v1 - facets[i]->v3)));
     }
     bb.clear();
-//    maxpt += GLVertex(TOLERANCE, TOLERANCE, TOLERANCE);
-//    minpt -= GLVertex(TOLERANCE, TOLERANCE, TOLERANCE);
     maxpt += GLVertex(cube_resolution, cube_resolution, cube_resolution) * 2.0;
     minpt -= GLVertex(cube_resolution, cube_resolution, cube_resolution) * 2.0;
 std::cout << "STL maxpt x:" << maxpt.x << " y: " << maxpt.y << " z:" << maxpt.z  << "\n";
@@ -430,8 +422,6 @@ std::cout << "STL minpt x:" << minpt.x << " y: " << minpt.y << " z:" << minpt.z 
     maxlength = fmax(fmax(maxpt.x - minpt.x, maxpt.y - minpt.y), maxpt.z - minpt.z);
 std::cout << "maxlength:" << maxlength << "\n";
 
-//	indexcubesize = maxlength / MAX_INDEX;
-//  invcubesize = 1.0 / indexcubesize;
 std::cout << "cube_resolution:" << cube_resolution << "\n";
 
 	typedef struct cube {
@@ -474,33 +464,33 @@ std::cout << "cube_resolution:" << cube_resolution << "\n";
 	QFuture<void> future[threadNum];
 #endif
 
-	for (int i=0; i < (int)cubes.size(); i ++) {
+    for (int i = 0; i < (int)cubes.size(); i++) {
 		double upper_limit = cubes[i].upper_limit;
 		indexcubesize = cubes[i].indexcubesize;
 		ratio = cubes[i].ratio;
 		int max_x = cubes[i].max_x, max_y = cubes[i].max_y, max_z = cubes[i].max_z;
 		bool from_facets = cubes[i].from_facets;
 
-		std::cout << "STL Facets Sorting Level " << i+1 << "/" << (int)cubes.size();
+        std::cout << "STL Facets Searching Level " << i+1 << "/" << (int)cubes.size();
 		swapIndex();
-emit signalProgressFeature(QString("STL Facets Sorting Level ") + QString::number(i+1) + QString("/") + QString::number((int)cubes.size()), 0, max_x);
+emit signalProgressFeature(QString("STL Facets Searching Level ") + QString::number(i+1) + QString("/") + QString::number((int)cubes.size()), 0, max_x);
 setProgress(0);
 #ifdef MULTI_THREAD_STL_NEIGHBOR
-		for (int index_x=0; index_x < max_x; index_x++) {
-			for (int index_y=0; index_y < max_y; index_y++) {
-				for (int index_z=0; index_z < max_z;) {
-					for (int i=0; i < threadNum; i++)
+        for (int index_x = 0; index_x < max_x; index_x++) {
+            for (int index_y = 0; index_y < max_y; index_y++) {
+                for (int index_z = 0; index_z < max_z;) {
+                    for (int i = 0; i < threadNum; i++)
 					{
 						future[i] = QtConcurrent::run(this, &StlVolume::calcNeighborhoodIndex, index_x, index_y, index_z++, upper_limit, from_facets);
 					}
-					for (int i=0; i < threadNum; i++)
+                    for (int i = 0; i < threadNum; i++)
 					{
 						future[i].waitForFinished();
 					}
 #else
-		for (int index_x=0; index_x < max_x; index_x++) {
-			for (int index_y=0; index_y < max_y; index_y++) {
-				for (int index_z=0; index_z < max_z; index_z++) {
+        for (int index_x = 0; index_x < max_x; index_x++) {
+            for (int index_y = 0; index_y < max_y; index_y++) {
+                for (int index_z = 0; index_z < max_z; index_z++) {
 					calcNeighborhoodIndex(index_x, index_y, index_z, upper_limit, from_facets);
 #endif
 				}
@@ -514,20 +504,20 @@ sendProgress();
 
 	invcubesize = 1.0 / indexcubesize;
 
-	for (int index_x=0; index_x < MAX_X; index_x++)
-		for (int index_y=0; index_y < MAX_Y; index_y++)
-			for (int index_z=0; index_z < MAX_Z; index_z++)
+    for (int index_x = 0; index_x < MAX_X; index_x++)
+        for (int index_y = 0; index_y < MAX_Y; index_y++)
+            for (int index_z = 0; index_z < MAX_Z; index_z++)
 				neighborhoodIndex[src_index][index_x][index_y][index_z].resize(0);
 }
 
 void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, double upper_limit, bool from_facets)
 {
-	double x = minpt.x + indexcubesize * index_x + TOLERANCE / 2.0;
-	if (x > maxpt.x) return;
-	double y = minpt.y + indexcubesize * index_y + TOLERANCE / 2.0;
-	if (y > maxpt.y) return;
-	double z = minpt.z + indexcubesize * index_z + TOLERANCE / 2.0;
-	if (z > maxpt.z) return;
+    double x = minpt.x + indexcubesize * index_x + indexcubesize / 2.0;
+    if (x > maxpt.x + indexcubesize / 2.0) return;
+    double y = minpt.y + indexcubesize * index_y + indexcubesize / 2.0;
+    if (y > maxpt.y + indexcubesize / 2.0) return;
+    double z = minpt.z + indexcubesize * index_z + indexcubesize / 2.0;
+    if (z > maxpt.z + indexcubesize / 2.0) return;
 
 	bool find = false;
 	double min = 1.0e+6;
@@ -537,7 +527,7 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
 	std::vector<CANDIDATE> candidate;
 
 	if (from_facets == true) {
-		for (int i=0; i < (int)facets.size(); i++) {
+        for (int i = 0; i < (int)facets.size(); i++) {
 			ret = distance(p, i);
     		if (ret <= upper_limit) {
     			find = true;
@@ -545,8 +535,8 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
     		} else {
     			if (ret <= min) {
     				min = ret;
-    			}
-    			if (ret < (min + indexcubesize)) {
+                }
+                if (ret < (min + indexcubesize)) {
     				CANDIDATE data = { i, ret };
     				candidate.push_back(data);
     			}
@@ -557,16 +547,17 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
 
 		int index_size = (int)neighborhoodIndex[src_index][index_x/ratio][index_y/ratio][index_z/ratio].size();
 		if (index_size == 0) return;
-		for (int ic=0, i=neighborhoodIndex[src_index][index_x/ratio][index_y/ratio][index_z/ratio][0]; ic < index_size; ic++, i=neighborhoodIndex[src_index][index_x/ratio][index_y/ratio][index_z/ratio][ic]) {
-			ret = distance(p, i);
+        for (int ic = 0; ic < index_size; ic++) {
+            int i = neighborhoodIndex[src_index][index_x/ratio][index_y/ratio][index_z/ratio][ic];
+            ret = distance(p, i);
 			if (ret <= upper_limit) {
 				find = true;
 				neighborhoodIndex[dst_index][index_x][index_y][index_z].push_back(i);
 			} else {
 				if (ret <= min) {
 					min = ret;
-				}
-				if (ret < (min + indexcubesize)) {
+                }
+                if (ret < (min + indexcubesize)) {
 					CANDIDATE data = { i, ret };
 					candidate.push_back(data);
 				}
@@ -575,7 +566,8 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
 	}
 	if (find == false) {
 		double search_distance = sqrt(min * min + indexcubesize * indexcubesize) + TOLERANCE;
-		for (int ic=0, i=candidate[0].index; ic < (int)candidate.size(); ic++, i=candidate[ic].index) {
+        for (int ic = 0; ic < (int)candidate.size(); ic++) {
+            int i = candidate[ic].index;
 			if (candidate[ic].dist <= search_distance) {
 				neighborhoodIndex[dst_index][index_x][index_y][index_z].push_back(i);
 			}
@@ -586,7 +578,7 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
 double StlVolume::distance(const GLVertex& p, int index) {
 	GLVertex q, r;
 	GLVertex n1, n2, n3;
-	double s12, s23;
+    double s12, s23, s31;
 	double d, u, abs_d;
 
 	u = (p - facets[index]->v1).dot(V21invV21dotV21[index]);
@@ -596,10 +588,10 @@ double StlVolume::distance(const GLVertex& p, int index) {
 	n1 = (r - facets[index]->v1).cross(V13[index]);
 	n2 = (r - facets[index]->v2).cross(V21[index]);
 	n3 = (r - facets[index]->v3).cross(V32[index]);
-	s12 = n1.dot(n2); s23 = n2.dot(n3);
+    s12 = n1.dot(n2); s23 = n2.dot(n3); s31 = n3.dot(n1);
 
-	if ((s12 > 0.0) && (s23 > 0.0)) {
-		return fabs(d);
+    if ((s12 > 0.0) && (s23 > 0.0) && (s31 > 0.0)) {
+        return fabs(d);
 	}
 
 	double abs_d12, abs_d13, abs_d32;
@@ -660,7 +652,7 @@ double StlVolume::dist(const GLVertex& p) const {
 	GLVertex q, r;
 	GLVertex n1, n2, n3;
 	double s12, s23, s31;
-	double min = 1.0e+6, d, u, abs_d;
+    double min = 1.0e+6, dir, u, abs_d;
 
 	double abs_d12, abs_d13, abs_d32;
 	GLVertex q12, q13, q32;
@@ -673,38 +665,56 @@ double StlVolume::dist(const GLVertex& p) const {
 	EDGE second	  = { 0, UNDECIDED, 1.0e+6, };
 	EDGE third	  = { 0, UNDECIDED, 1.0e+6, };
 	std::vector<EDGE> more;
+    int normal_vec_calc_count = 0;
 
-//struct { double x, y, z; } target = {5.0, 7.0, 50.7};
-struct { double x, y, z; } target = {4.98438,6.64062,50.8594};
-//struct { double x, y, z; } target = {20.0, -4.0, 25.5};
-//struct { double x, y, z; } target = {19.9298,-3.90781,25.8266};
-#define DETAIL
+//struct { double x, y, z; } target = {-11.500,23.000,23.000};
+//struct { double x, y, z; } target = {-28.000,22.000,20.000};
+//struct { double x, y, z; } target = {-21.500,29.000,26.500};
+//struct { double x, y, z; } target = {16.000,22.000,30.000};
+//struct { double x, y, z; } target = {-25.000,0.000,25.000};
+//struct { double x, y, z; } target = {-29.8828,3.16406,29.1797};
+//struct { double x, y, z; } target = {-22.5,-4.92188,23.9062};
+struct { double x, y, z; } target = {-15.000, 7.000, 16.500};
+GLVertex test_vector;
+
+
+//#define DETAIL
+//#define GRID    (5.0)
+#define GRID    (2.0)
 #ifdef DETAIL
 if ((target.x-TOLERANCE < p.x) && (p.x < target.x+TOLERANCE) && (target.y-TOLERANCE < p.y) && (p.y < target.y+TOLERANCE) && (target.z-TOLERANCE < p.z) && (p.z < target.z+TOLERANCE)) {
 #else
-if ((target.x-0.5 < p.x) && (p.x < target.x+0.5) && (target.y-0.5 < p.y) && (p.y < target.y+0.5) && (target.z-0.5 < p.z) && (p.z < target.z+0.5)) {
+if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (p.y < target.y+GRID) && (target.z-GRID < p.z) && (p.z < target.z+GRID)) {
 #endif
-	std::cout << "target p(" << p.x << "," << p.y << "," << p.z << ") " << std::flush;
+{
+    std::cout << "target p(" << p.x << "," << p.y << "," << p.z << ") index_size: " << index_size << " " << std::flush;
+    for (int ic = 0; ic < index_size; ic++) {
+        int i = neighborhoodIndex[dst_index][index_x][index_y][index_z][ic];
+        std::cout << "(" << i << ")";
+    }
+    std::cout << " " << std::flush;
+}
 }
 
-	for (int ic=0, i=neighborhoodIndex[dst_index][index_x][index_y][index_z][0]; ic < index_size; ic++, i=neighborhoodIndex[dst_index][index_x][index_y][index_z][ic]) {
+    for (int ic = 0; ic < index_size; ic++) {
+        int i = neighborhoodIndex[dst_index][index_x][index_y][index_z][ic];
 		u = (p - facets[i]->v1).dot(V21invV21dotV21[i]);
 		q = facets[i]->v1 + V21[i] * u;
-		d = (q - p).dot(facets[i]->normal);
-		if ((abs_d = fabs(d)) > min) continue;
-		r = p + facets[i]->normal * d;
+        dir = (q - p).dot(facets[i]->normal);
+        if ((abs_d = fabs(dir)) > min) continue;
+        r = p + facets[i]->normal * dir;
 		n1 = (r - facets[i]->v1).cross(V13[i]);
 		n2 = (r - facets[i]->v2).cross(V21[i]);
 		n3 = (r - facets[i]->v3).cross(V32[i]);
 		s12 = n1.dot(n2); s23 = n2.dot(n3); s31 = n3.dot(n1);
 
 		if ((s12 > 0.0) && (s23 > 0.0) && (s31 > 0.0)) {
-			double candidate_min = abs_d - CALC_TOLERANCE*10.0;
-			{
+            double candidate_min = abs_d - CALC_TOLERANCE;
+            {
 				double d1 = (facets[i]->v1 - p).norm(); double d2 = (facets[i]->v2 - p).norm(); double d3 = (facets[i]->v3 - p).norm();
 				if ((candidate_min < d1) && (candidate_min < d2) && (candidate_min < d3)) { // sanity check..
 					min = candidate_min;
-					ret = d;
+                    ret = dir;
 					selected.index = i;
 					if (ret > 0.0)
 						selected.side = INSIDE;
@@ -715,7 +725,6 @@ if ((target.x-0.5 < p.x) && (p.x < target.x+0.5) && (target.y-0.5 < p.y) && (p.y
 					continue;
 				}
 			}
-//			continue;
 		}
 
 		if (u <= 0.0)
@@ -759,24 +768,21 @@ if ((target.x-0.5 < p.x) && (p.x < target.x+0.5) && (target.y-0.5 < p.y) && (p.y
 		if (abs_d >= min && abs_d > second.abs_d)
 			continue;
 
-		d = (q - p).dot(facets[i]->normal);
-		if (d > 0.0 + CALC_TOLERANCE)
+        dir = (q - p).dot(facets[i]->normal);
+        if (dir > 0.0)
 			side = INSIDE;
 		else
 			side = OUTSIDE;
 
 		if (abs_d < min) {
-			if (side == INSIDE) {
-//				min = abs_d + CALC_TOLERANCE*10.0;
-				min = abs_d + CALC_TOLERANCE*2.0;
-				ret = abs_d;
+            min = abs_d;
+            if (side == INSIDE) {
+                ret = abs_d;
 			} else {
-//				min = abs_d - CALC_TOLERANCE*10.0;
-				min = abs_d - CALC_TOLERANCE*2.0;
-				ret = -abs_d;
+                ret = -abs_d;
 			}
 
-			if (third.side != UNDECIDED)
+            if (third.side != UNDECIDED)
 				more.push_back(third);
 			third.index = second.index;
 			third.side = second.side;
@@ -806,48 +812,113 @@ if ((target.x-0.5 < p.x) && (p.x < target.x+0.5) && (target.y-0.5 < p.y) && (p.y
 		}
 	}
 
+    if ((second.side != UNDECIDED) && (third.side != UNDECIDED)) {
+        if ((selected.q - third.q).norm() < (selected.q - second.q).norm()) {
+            std::swap(second, third);
+        }
+        if (!more.empty()) {
+            sort(more.begin(), more.end(), [selected](const EDGE& e1, const EDGE& e2) { return (selected.q - e1.q).norm() < (selected.q - e2.q).norm();} );
+            if ((selected.q - more[0].q).norm() < (selected.q - third.q).norm()) {
+                std::swap(third,  more[0]);
+            }
+        }
+    }
+
 	if (correction == true) {
-		if ((second.side != UNDECIDED) && (second.side != selected.side)) {
-			if ((selected.q - second.q).norm() < TOLERANCE) {
-				std::cout << "correction ";
-				GLVertex outer_vector = facets[selected.index]->normal + facets[second.index]->normal;
-				if ((third.side != UNDECIDED) && ((selected.q - third.q).norm() < TOLERANCE)) {
-					if ((facets[second.index]->normal - facets[third.index]->normal).norm() > TOLERANCE)
-						outer_vector += facets[third.index]->normal;
-					if (more.empty())
-						std::cout << "triple\n";
-					else {
-						std::cout << "more triple...(" << more.size() << " facets)\n";
-						for (int i = 0; i < (int)more.size(); i++)
-							if ((selected.q - more[i].q).norm() < TOLERANCE)
-								if ((facets[third.index]->normal - facets[more[i].index]->normal).norm() > TOLERANCE)
-									outer_vector += facets[more[i].index]->normal;
+        if (((second.side != UNDECIDED) && (second.side != selected.side)) || ((third.side != UNDECIDED) && (third.side != selected.side)) || !more.empty()) {
+            if ((selected.q - second.q).norm() < CALC_TOLERANCE*10.0) {
+//				std::cout << "correction ";
+                GLVertex outer_vector = ((selected.q - Facet::facetCenter(facets[selected.index])).normalize() + (selected.q - Facet::facetCenter(facets[second.index])).normalize()).normalize();
+                GLVertex normal_avg_vector = facets[selected.index]->normal + facets[second.index]->normal;
+                normal_vec_calc_count++;
+                if ((third.side != UNDECIDED) && ((selected.q - third.q).norm() < CALC_TOLERANCE*10.0)) {
+                    outer_vector += (selected.q - Facet::facetCenter(facets[third.index])).normalize();
+                    outer_vector.normalize();
+                    normal_avg_vector += facets[third.index]->normal;
+                    normal_vec_calc_count++;
+                    if (more.empty()) {
+//						std::cout << "triple\n";
+                    } else {
+//                        std::cout << "more triple...(" << more.size() << " facets)\n";
+                        for (int i = 0; i < (int)more.size(); i++) {
+                            if ((selected.q - more[i].q).norm() < CALC_TOLERANCE*10.0) {
+                                outer_vector += (selected.q - Facet::facetCenter(facets[more[i].index])).normalize();
+                                outer_vector.normalize();
+                                normal_avg_vector += facets[more[i].index]->normal;
+                                normal_vec_calc_count++;
+                            }
+                        }
 					}
 				} else {
-					std::cout << "double\n";
+//                    std::cout << "double\n" << std::flush;
 				}
-				if ((outer_vector).dot(selected.q - p) < 0) {
-					if (ret > 0.0)	{
-						std::cout << "SIDE WRONG!! INSIDE -> OUTSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
-						ret = -second.abs_d;
-					}
-				} else {
-					if (ret <= 0.0)	{
-						std::cout << "SIDE WRONG!! OUTSIDE -> INSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
-						ret = second.abs_d;
-					}
-				}
-			}
-		}
-	}
+                normal_avg_vector.normalize();
+                if (normal_avg_vector.dot(outer_vector) < 0.0) {
+                    outer_vector.x = -outer_vector.x;
+                    outer_vector.y = -outer_vector.y;
+                    outer_vector.z = -outer_vector.z;
+                }
+test_vector = outer_vector;
+                if (!(normal_vec_calc_count == 1 && (second.side == selected.side))) {
+                    if (outer_vector.dot(selected.q - p) < 0.0) {
+                        if (selected.side == INSIDE) {
+//          				std::cout << "SIDE WRONG!! INSIDE -> OUTSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                            ret = -selected.abs_d;
+                        }
+                    } else {
+                        if (selected.side == OUTSIDE) {
+//                          std::cout << "SIDE WRONG!! OUTSIDE -> INSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                            ret = selected.abs_d;
+                        }
+                    }
+                }
+            } else {
+
+            }
+        }
+    }
 
 #ifdef DETAIL
 if ((target.x-TOLERANCE < p.x) && (p.x < target.x+TOLERANCE) && (target.y-TOLERANCE < p.y) && (p.y < target.y+TOLERANCE) && (target.z-TOLERANCE < p.z) && (p.z < target.z+TOLERANCE))
 #else
-if ((target.x-0.5 < p.x) && (p.x < target.x+0.5) && (target.y-0.5 < p.y) && (p.y < target.y+0.5) && (target.z-0.5 < p.z) && (p.z < target.z+0.5))
+if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (p.y < target.y+GRID) && (target.z-GRID < p.z) && (p.z < target.z+GRID))
 #endif
-	std::cout << "side(" << ((ret > 0) ? "INSIDE)" : "OUTSIDE):") << " facets:(" << selected.index << ")("<< second.index <<  ")\n" << std::flush;
+{
+    std::cout << "normal_vec_calc_count :" << normal_vec_calc_count << "\n" << std::flush;
 
+    if (third.side != UNDECIDED) {
+        std::cout << "side(" << ((ret > 0) ? "INSIDE)" : "OUTSIDE):") << " facets:(" << selected.index << ")("<< second.index << ")("<< third.index << ")\n" << std::flush;
+        std::cout << "(selected.q - second.q).norm :" << (selected.q - second.q).norm() << " selected.ads_d :" << selected.abs_d << " second.abs_d :" << second.abs_d << "\n" << std::flush;
+        std::cout << "(selected.q - third.q).norm :" << (selected.q - third.q).norm() << " selected.ads_d :" << selected.abs_d << " third.abs_d :" << third.abs_d << "\n" << std::flush;
+        std::cout << " selected.q:(" << selected.q.x << "," << selected.q.y << "," << selected.q.z << ")\n" << std::flush;
+        std::cout << " second.q:  (" << second.q.x << "," << second.q.y << "," << second.q.z << ")\n" << std::flush;
+        std::cout << " third.q:   (" << third.q.x << "," << third.q.y << "," << third.q.z << ")\n" << std::flush;
+        std::cout << " test_vector:(" << test_vector.x << "," << test_vector.y << "," << test_vector.z << ")\n" << std::flush;
+        std::cout << " facets normal:(" << selected.index << ")(" << facets[selected.index]->normal.x << "," << facets[selected.index]->normal.y << "," << facets[selected.index]->normal.z << ")\n" << std::flush;
+        std::cout << " facets normal:(" << second.index << ")(" << facets[second.index]->normal.x << "," << facets[second.index]->normal.y << "," << facets[second.index]->normal.z << ")\n" << std::flush;
+        std::cout << " facets normal:(" << third.index << ")(" << facets[third.index]->normal.x << "," << facets[third.index]->normal.y << "," << facets[third.index]->normal.z << ")\n" << std::flush;
+        std::cout << " facets:(" << selected.index << ")(" << facets[selected.index]->v1.x << "," << facets[selected.index]->v1.y << "," << facets[selected.index]->v1.z << ")(" << facets[selected.index]->v2.x << "," << facets[selected.index]->v2.y << "," << facets[selected.index]->v2.z << ")(" << facets[selected.index]->v3.x << "," << facets[selected.index]->v3.y << "," << facets[selected.index]->v3.z << ")\n" << std::flush;
+        std::cout << " facets:(" << second.index << ")(" << facets[second.index]->v1.x << "," << facets[second.index]->v1.y << "," << facets[second.index]->v1.z << ")(" << facets[second.index]->v2.x << "," << facets[second.index]->v2.y << "," << facets[second.index]->v2.z << ")(" << facets[second.index]->v3.x << "," << facets[second.index]->v3.y << "," << facets[second.index]->v3.z << ")\n" << std::flush;
+        std::cout << " facets:(" << third.index << ")(" << facets[third.index]->v1.x << "," << facets[third.index]->v1.y << "," << facets[third.index]->v1.z << ")(" << facets[third.index]->v2.x << "," << facets[third.index]->v2.y << "," << facets[third.index]->v2.z << ")(" << facets[third.index]->v3.x << "," << facets[third.index]->v3.y << "," << facets[third.index]->v3.z << ")\n" << std::flush;
+        if (!more.empty()) {
+            for (unsigned int i = 0; i < more.size(); i++) {
+                std::cout << "  (selected.q - more[" << i << "].q).norm :" << (selected.q - more[i].q).norm() << " selected.ads_d :" << selected.abs_d << " more[" << i << "].abd_d :" << more[i].abs_d << "\n" << std::flush;
+                std::cout << "   facets normal: more[" << i << "](" << more[i].index << ")(" << facets[more[i].index]->normal.x << "," << facets[more[i].index]->normal.y << "," << facets[more[i].index]->normal.z << ")\n" << std::flush;
+                std::cout << "   facets: more[" << i << "](" << more[i].index << ")("<< facets[more[i].index]->v1.x << "," << facets[more[i].index]->v1.y << "," << facets[more[i].index]->v1.z << ")(" << facets[more[i].index]->v2.x << "," << facets[more[i].index]->v2.y << "," << facets[more[i].index]->v2.z << ")(" << facets[more[i].index]->v3.x << "," << facets[more[i].index]->v3.y << "," << facets[more[i].index]->v3.z << ")\n" << std::flush;
+            }
+        }
+    } else {
+        std::cout << "side(" << ((ret > 0) ? "INSIDE)" : "OUTSIDE):") << " facets:(" << selected.index << ")("<< second.index << ")\n" << std::flush;
+        std::cout << "(selected.q - second.q).norm :" << (selected.q - second.q).norm() << " selected.ads :" << selected.abs_d << " second.abs_d :" << second.abs_d << "\n" << std::flush;
+        std::cout << " selected.q:(" << selected.q.x << "," << selected.q.y << "," << selected.q.z << ")\n" << std::flush;
+        std::cout << " second.q:  (" << second.q.x << "," << second.q.y << "," << second.q.z << ")\n" << std::flush;
+        std::cout << " test_vector:(" << test_vector.x << "," << test_vector.y << "," << test_vector.z << ")\n" << std::flush;
+        std::cout << " facets normal:(" << selected.index << ")(" << facets[selected.index]->normal.x << "," << facets[selected.index]->normal.y << "," << facets[selected.index]->normal.z << ")\n" << std::flush;
+        std::cout << " facets normal:(" << second.index << ")(" << facets[second.index]->normal.x << "," << facets[second.index]->normal.y << "," << facets[second.index]->normal.z << ")\n" << std::flush;
+        std::cout << " facets:(" << selected.index << ")(" << facets[selected.index]->v1.x << "," << facets[selected.index]->v1.y << "," << facets[selected.index]->v1.z << ")(" << facets[selected.index]->v2.x << "," << facets[selected.index]->v2.y << "," << facets[selected.index]->v2.z << ")(" << facets[selected.index]->v3.x << "," << facets[selected.index]->v3.y << "," << facets[selected.index]->v3.z << ")\n" << std::flush;
+        std::cout << " facets:(" << second.index << ")(" << facets[second.index]->v1.x << "," << facets[second.index]->v1.y << "," << facets[second.index]->v1.z << ")(" << facets[second.index]->v2.x << "," << facets[second.index]->v2.y << "," << facets[second.index]->v2.z << ")(" << facets[second.index]->v3.x << "," << facets[second.index]->v3.y << "," << facets[second.index]->v3.z << ")\n" << std::flush;
+    }
+}
 	return ret;		// positive inside. negative outside.
 }
 

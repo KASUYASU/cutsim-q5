@@ -39,6 +39,8 @@
 #include <QObject>
 #include <QtConcurrent>
 
+#include <algorithm>
+
 namespace cutsim {
 
 /// base-class for defining implicit volumes from which to build octrees
@@ -75,8 +77,8 @@ class Volume : public QObject {
 Q_OBJECT
     public:
         /// default constructor
-        Volume(){};
-        virtual ~Volume(){};
+        Volume(){}
+        virtual ~Volume(){}
 
         VolumeType type;
 

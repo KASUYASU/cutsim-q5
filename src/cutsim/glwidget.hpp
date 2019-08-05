@@ -102,8 +102,8 @@ void requestRedraw(QString s);
         virtual void postDraw();
         /// the user pressed a key
         virtual void keyPressEvent(QKeyEvent *e);
-/// draw with names
-virtual void drawWithNames();
+        /// draw with names
+        virtual void drawWithNames();
         /// point selection
         virtual void postSelection(const QPoint& point);
 

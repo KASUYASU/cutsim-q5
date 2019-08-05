@@ -520,7 +520,7 @@ void StlVolume::calcNeighborhoodIndex(int index_x, int index_y, int index_z, dou
     if (z > maxpt.z + indexcubesize / 2.0) return;
 
 	bool find = false;
-	double min = 1.0e+6;
+    double min = FLT_MAX;
 	double ret;
 	GLVertex p = GLVertex(x, y, z);
 	typedef struct { int index; double dist; } CANDIDATE;
@@ -637,7 +637,7 @@ double StlVolume::distance(const GLVertex& p, int index) {
 
 double StlVolume::dist(const GLVertex& p) const {
 	int index_x, index_y, index_z;
-	double ret = -1.0e+6;
+    double ret = -FLT_MAX;
 
 	index_x = (int)((p.x - minpt.x) * invcubesize);
 	index_y = (int)((p.y - minpt.y) * invcubesize);
@@ -652,7 +652,7 @@ double StlVolume::dist(const GLVertex& p) const {
 	GLVertex q, r;
 	GLVertex n1, n2, n3;
 	double s12, s23, s31;
-    double min = 1.0e+6, dir, u, abs_d;
+    double min = FLT_MAX, dir, u, abs_d;
 
 	double abs_d12, abs_d13, abs_d32;
 	GLVertex q12, q13, q32;
@@ -660,27 +660,24 @@ double StlVolume::dist(const GLVertex& p) const {
 
 	enum StlSide  { INSIDE, OUTSIDE, UNDECIDED };
 	StlSide side = UNDECIDED;
-	typedef struct {int index; StlSide side; double abs_d; GLVertex q;} EDGE;
-	EDGE selected = { 0, UNDECIDED, 1.0e+6, };
-	EDGE second	  = { 0, UNDECIDED, 1.0e+6, };
-	EDGE third	  = { 0, UNDECIDED, 1.0e+6, };
-	std::vector<EDGE> more;
+    enum Property { ON_VERTEX = 0x4, ON_EDGE = 0x8, ON_INNER = 0x10 };
+    typedef struct {int index; StlSide side; double abs_d; GLVertex q; int property; } CANDIDATE;
+    CANDIDATE selected = { 0, UNDECIDED, FLT_MAX, };
+    CANDIDATE second	  = { 0, UNDECIDED, FLT_MAX, };
+    CANDIDATE third	  = { 0, UNDECIDED, FLT_MAX, };
+    std::vector<CANDIDATE> more;
     int normal_vec_calc_count = 0;
 
-//struct { double x, y, z; } target = {-11.500,23.000,23.000};
-//struct { double x, y, z; } target = {-28.000,22.000,20.000};
-//struct { double x, y, z; } target = {-21.500,29.000,26.500};
-//struct { double x, y, z; } target = {16.000,22.000,30.000};
-//struct { double x, y, z; } target = {-25.000,0.000,25.000};
-//struct { double x, y, z; } target = {-29.8828,3.16406,29.1797};
-//struct { double x, y, z; } target = {-22.5,-4.92188,23.9062};
-struct { double x, y, z; } target = {-15.000, 7.000, 16.500};
+//struct { double x, y, z; } target = {-24.6268, 28.3726, 7.4243};
+//struct { double x, y, z; } target = {1.54902, 28.3839, 29.4307};
+//struct { double x, y, z; } target = {-10.8187, -1.39877, -19.1763};
+struct { double x, y, z; } target = {-17.9277, 1.39365, 29.8095};
 GLVertex test_vector;
-
+bool hit = false;
 
 //#define DETAIL
 //#define GRID    (5.0)
-#define GRID    (2.0)
+#define GRID    (1.0)
 #ifdef DETAIL
 if ((target.x-TOLERANCE < p.x) && (p.x < target.x+TOLERANCE) && (target.y-TOLERANCE < p.y) && (p.y < target.y+TOLERANCE) && (target.z-TOLERANCE < p.z) && (p.z < target.z+TOLERANCE)) {
 #else
@@ -693,6 +690,7 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
         std::cout << "(" << i << ")";
     }
     std::cout << " " << std::flush;
+    hit = true;
 }
 }
 
@@ -721,49 +719,69 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
 					else
 						selected.side = OUTSIDE;
 					selected.q = q;
+                    selected.property = ON_INNER;
 					correction = false;
 					continue;
 				}
 			}
 		}
 
-		if (u <= 0.0)
+        int q12_property, q13_property, q32_property;
+
+        if (u <= 0.0) {
 			q12 = facets[i]->v1;
-		else if (u >= 1.0)
+            q12_property = ON_VERTEX + 1;
+        } else if (u >= 1.0) {
 			q12 = facets[i]->v2;
-		else
+            q12_property = ON_VERTEX + 2;
+        } else {
 			/* q = facets[i]->v1 + V21[i] * u */
 			q12 = q;
+            q12_property = ON_EDGE + 1;
+        }
 		abs_d12 = (q12 - p).norm();
 
 		u = (p - facets[i]->v3).dot(V13invV13dotV13[i]);
-		if (u <= 0.0)
+        if (u <= 0.0) {
 			q13 = facets[i]->v3;
-		else if (u >= 1.0)
+            q13_property = ON_VERTEX + 3;
+        } else if (u >= 1.0) {
 			q13 = facets[i]->v1;
-		else
+            q13_property = ON_VERTEX + 1;
+        } else {
 			q13 = facets[i]->v3 + V13[i] * u;
+            q13_property = ON_EDGE + 3;
+        }
 		abs_d13 = (q13 - p).norm();
 
 		u = (p - facets[i]->v2).dot(V32invV32dotV32[i]);
-		if (u <= 0.0)
+        if (u <= 0.0) {
 			q32 = facets[i]->v2;
-		else if (u >= 1.0)
+            q32_property = ON_VERTEX + 2;
+        } else if (u >= 1.0) {
 			q32 = facets[i]->v3;
-		else
+            q32_property = ON_VERTEX + 3;
+        } else {
 			q32 = facets[i]->v2 + V32[i] * u;
+            q32_property = ON_EDGE + 2;
+        }
 		abs_d32 = (q32 - p).norm();
+
+        int property;
 
 		if ((abs_d12 <= abs_d13) && (abs_d12 <= abs_d32)) {
 			q = q12;
 			abs_d = abs_d12;
+            property = q12_property;
 		} else if ((abs_d13 < abs_d12) && (abs_d13 <= abs_d32)) {
 			q = q13;
 			abs_d = abs_d13;
-		} else {
+            property = q13_property;
+        } else {
 			q = q32;
 			abs_d = abs_d32;
-		}
+            property = q32_property;
+        }
 
 		if (abs_d >= min && abs_d > second.abs_d)
 			continue;
@@ -784,32 +802,25 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
 
             if (third.side != UNDECIDED)
 				more.push_back(third);
-			third.index = second.index;
-			third.side = second.side;
-			third.abs_d = second.abs_d;
-			third.q = second.q;
-			second.index = selected.index;
-			second.side = selected.side;
-			second.abs_d = selected.abs_d;
-			second.q = selected.q;
+            third = second;
+            second = selected;
 
 			selected.index = i;
 			selected.side = side;
 			selected.abs_d = abs_d;
 			selected.q = q;
+            selected.property = property;
 			correction = true;
 		} else {
 			if (third.side != UNDECIDED)
 				more.push_back(third);
-			third.index = second.index;
-			third.side = second.side;
-			third.abs_d = second.abs_d;
-			third.q = second.q;
+            third = second;
 			second.index = i;
 			second.side = side;
 			second.abs_d = abs_d;
 			second.q = q;
-		}
+            second.property = property;
+        }
 	}
 
     if ((second.side != UNDECIDED) && (third.side != UNDECIDED)) {
@@ -817,7 +828,7 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
             std::swap(second, third);
         }
         if (!more.empty()) {
-            sort(more.begin(), more.end(), [selected](const EDGE& e1, const EDGE& e2) { return (selected.q - e1.q).norm() < (selected.q - e2.q).norm();} );
+            sort(more.begin(), more.end(), [selected](const CANDIDATE& e1, const CANDIDATE& e2) { return (selected.q - e1.q).norm() < (selected.q - e2.q).norm();} );
             if ((selected.q - more[0].q).norm() < (selected.q - third.q).norm()) {
                 std::swap(third,  more[0]);
             }
@@ -854,26 +865,160 @@ if ((target.x-GRID < p.x) && (p.x < target.x+GRID) && (target.y-GRID < p.y) && (
 				}
                 normal_avg_vector.normalize();
                 if (normal_avg_vector.dot(outer_vector) < 0.0) {
-                    outer_vector.x = -outer_vector.x;
-                    outer_vector.y = -outer_vector.y;
-                    outer_vector.z = -outer_vector.z;
+                    outer_vector *= -1.0;
+if (hit == true) {
+std::cout << "negate outer_vector\n"<<  std::flush;
+std::cout << " normal_avg_vector :(" << normal_avg_vector.x << "," << normal_avg_vector.y << "," << normal_avg_vector.z << ")\n" << std::flush;
+}
                 }
 test_vector = outer_vector;
                 if (!(normal_vec_calc_count == 1 && (second.side == selected.side))) {
                     if (outer_vector.dot(selected.q - p) < 0.0) {
                         if (selected.side == INSIDE) {
 //          				std::cout << "SIDE WRONG!! INSIDE -> OUTSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                            selected.side = OUTSIDE;
                             ret = -selected.abs_d;
                         }
                     } else {
                         if (selected.side == OUTSIDE) {
 //                          std::cout << "SIDE WRONG!! OUTSIDE -> INSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                            selected.side = INSIDE;
                             ret = selected.abs_d;
                         }
                     }
                 }
             } else {
-
+                if ((second.side != selected.side) && ((selected.property & ON_EDGE) || (second.property & ON_EDGE))) {
+                    int do_correct = false;
+                    if ((selected.property & ON_EDGE) && (second.property & ON_EDGE)) {
+                        GLVertex edge1, edge2, p1, p2, p;
+                        if ((selected.property & ~ON_EDGE) == 1) {
+                            edge1 = V21[selected.index];
+                            p1 = facets[selected.index]->v1;
+                        } else if ((selected.property & ~ON_EDGE) == 2) {
+                            edge1 = V32[selected.index];
+                            p1 = facets[selected.index]->v2;
+                        } else {
+                            edge1 = V32[selected.index];
+                            p1 = facets[selected.index]->v3;
+                        }
+                        if ((second.property & ~ON_EDGE) == 1) {
+                            edge2 = V21[second.index];
+                            p2 = facets[second.index]->v1;
+                        } else if ((second.property & ~ON_EDGE) == 2) {
+                            edge2 = V32[second.index];
+                            p2 = facets[second.index]->v2;
+                        } else {
+                            edge2 = V32[second.index];
+                            p2 = facets[second.index]->v3;
+                        }
+                        edge1.normalize();
+                        edge2.normalize();
+                        p = (p1 - p2).normalize();
+                        if ((edge1.cross(p).norm() < TOLERANCE) && (edge1.cross(edge2).norm() < TOLERANCE)) {
+                            do_correct = true;
+                        }
+                    } else if ((selected.property & ON_EDGE)) {
+                        GLVertex edge, ev, p;
+                        if ((selected.property & ~ON_EDGE) == 1) {
+                            edge = V21[selected.index];
+                            ev = facets[selected.index]->v1;
+                        } else if ((selected.property & ~ON_EDGE) == 2) {
+                            edge = V32[selected.index];
+                            ev = facets[selected.index]->v2;
+                        } else {
+                            edge = V32[selected.index];
+                            ev = facets[selected.index]->v3;
+                        }
+                        if ((second.property & ~ON_VERTEX) == 1) {
+                            p = facets[second.index]->v1 - ev;
+                        } else if ((second.property & ~ON_VERTEX) == 2) {
+                            p = facets[second.index]->v2 - ev;
+                        } else {
+                            p = facets[second.index]->v3 - ev;
+                        }
+                        edge.normalize();
+                        p.normalize();
+                        if (edge.cross(p).norm() < TOLERANCE) {
+                            do_correct = true;
+                        }
+                    } else if ((second.property & ON_EDGE)) {
+                        GLVertex edge, ev, p;
+                        if ((second.property & ~ON_EDGE) == 1) {
+                            edge = V21[second.index];
+                            ev = facets[second.index]->v1;
+                        } else if ((second.property & ~ON_EDGE) == 2) {
+                            edge = V32[second.index];
+                            ev = facets[second.index]->v2;
+                        } else {
+                            edge = V32[second.index];
+                            ev = facets[second.index]->v3;
+                        }
+                        if ((selected.property & ~ON_VERTEX) == 1) {
+                            p = facets[selected.index]->v1 - ev;
+                        } else if ((selected.property & ~ON_VERTEX) == 2) {
+                            p = facets[selected.index]->v2 - ev;
+                        } else {
+                            p = facets[selected.index]->v3 - ev;
+                        }
+                        edge.normalize();
+                        p.normalize();
+                        if (edge.cross(p).norm() < TOLERANCE) {
+                            do_correct = true;
+                        }
+                    }
+                    if (do_correct == true) {
+                        GLVertex outer_vector = ((selected.q - Facet::facetCenter(facets[selected.index])).normalize() + (selected.q - Facet::facetCenter(facets[second.index])).normalize()).normalize();
+                        GLVertex normal_avg_vector = facets[selected.index]->normal + facets[second.index]->normal;
+                        if (normal_avg_vector.dot(outer_vector) < 0.0) {
+                            outer_vector *= -1.0;
+                        }
+                        if (outer_vector.dot(selected.q - p) < 0.0) {
+                            if (selected.side == INSIDE) {
+//                              std::cout << "SIDE WRONG!! INSIDE -> OUTSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                                selected.side = OUTSIDE;
+                                ret = -selected.abs_d;
+                            }
+                        } else {
+                            if (selected.side == OUTSIDE) {
+//                              std::cout << "SIDE WRONG!! OUTSIDE -> INSIDE p(" << p.x <<"," << p.y << "," << p.z << ")\n" <<  std::flush;
+                                selected.side = INSIDE;
+                                ret = selected.abs_d;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        // sanity check
+        GLVertex v = (Facet::facetCenter(facets[selected.index]) - p).normalize();
+        double distance = (Facet::facetCenter(facets[selected.index]) - p).norm();
+        for (int ic = 0; ic < index_size; ic++) {
+            int i = neighborhoodIndex[dst_index][index_x][index_y][index_z][ic];
+            if (i == selected.index) continue;
+            double v_n = v.dot(facets[i]->normal);
+            if (fabs(v_n) < CALC_TOLERANCE) continue;
+            double t = (facets[i]->v1 - p).dot(facets[i]->normal) / v_n;
+            if (t < 0.0) continue;
+            GLVertex r = p + v * t;
+            n1 = (r - facets[i]->v1).cross(V13[i]);
+            n2 = (r - facets[i]->v2).cross(V21[i]);
+            n3 = (r - facets[i]->v3).cross(V32[i]);
+            s12 = n1.dot(n2); s23 = n2.dot(n3); s31 = n3.dot(n1);
+            if ((s12 > 0.0) && (s23 > 0.0) && (s31 > 0.0)) {
+//std::cout << "sanity check\n" << std::flush;
+                if (t < distance) {
+                    distance = t;
+                    if ((selected.side == INSIDE) && (v_n < 0.0)) {
+std::cout << "??? p:(" << p.x << "," << p.y << "," << p.z << ")\n" << std::flush;
+selected.side = OUTSIDE;
+ret = -selected.abs_d;
+                    } else if ((selected.side == OUTSIDE) && (v_n > 0.0)) {
+std::cout << "??? p:(" << p.x << "," << p.y << "," << p.z << ")\n" << std::flush;
+selected.side = INSIDE;
+ret = selected.abs_d;
+                    }
+                }
             }
         }
     }

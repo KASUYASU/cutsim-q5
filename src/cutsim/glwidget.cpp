@@ -235,7 +235,6 @@ void GLWidget::postSelection(const QPoint& point)
   else
     QMessageBox::information(this, "Selection",
 			     "Spiral number " + QString::number(selectedName()) + " selected under pixel " +
-//			     QString::number(point.x()) + "," + QString::number(point.y()));
 			     QString::number(selectedPoint.x) + "," + QString::number(selectedPoint.y)+ "," + QString::number(selectedPoint.z));
 }
 

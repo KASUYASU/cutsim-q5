@@ -24,6 +24,7 @@
 #include <iostream>
 #include <list>
 #include <cassert>
+#include <float.h>
 
 #include "bbox.hpp"
 #include "facet.hpp"
